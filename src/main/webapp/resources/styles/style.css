@@ -1,0 +1,78 @@
+html {
+	font-family: sans-serif;
+}
+
+body {
+	width: 1024px;
+	height: 100%;
+	margin: 0 auto;
+}
+
+#view {
+	float: left;
+	width: 100%;
+}
+
+#content {
+	float: left;
+	width: 100%;
+	margin-top: 16px;
+	
+}
+
+.grid-header {
+	font-weight: bold;
+	background: #ddd;
+}
+
+.row {
+	padding: 8px 0;
+}
+
+.row > div.col-1 {
+	margin-top: 6px;
+	margin-left: 21px;
+}
+
+.selected-row {
+	background: #feffa4;
+}
+
+#header {
+	float: left;
+	width: 100%;
+	margin-top: 128px;
+}
+
+#header > button:not(:first-child) {
+	margin-left: 16px;
+}
+
+#form {
+	float: left;
+	width: 100%;
+	margin-top: 128px;
+}
+
+#form > div > label {
+	width: 100%;
+}
+
+#form-footer {
+	float: left;
+	width: 100%;
+	margin-top: 16px;
+}
+
+#form-footer > button:not(:first-child) {
+	margin-left: 16px;
+}
+
+span.required {
+	margin-left: 4px;
+	color: #dd0000;
+}
+
+.display-none {
+	display: none;
+}
