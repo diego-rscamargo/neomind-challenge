@@ -1,5 +1,6 @@
 html {
 	font-family: sans-serif;
+	background: #fff;
 }
 
 body {
@@ -27,6 +28,12 @@ body {
 
 .row {
 	padding: 8px 0;
+	outline: 0;
+}
+
+.row:not(.grid-header):hover {
+	background: #f7f7f7;
+	cursor: pointer;
 }
 
 .row > div.col-1 {
@@ -35,7 +42,7 @@ body {
 }
 
 .selected-row {
-	background: #feffa4;
+	background: #feffa4 !important;
 }
 
 #header {

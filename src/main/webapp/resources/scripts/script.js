@@ -1,137 +1,159 @@
-(function () {
+(function () { {}
 	"use strict";
 
-	angular.module("challenge", []).controller("Index", function ($scope, $http) {
-		$scope.list = $("#container > div:not(.grid-header)").html();
+	angular.module("challenge", ["ngMaterial", "ui.mask"]).controller("Index", function ($scope, $http, $mdDialog) {
+		$scope.formClass = "display-none";
+		$scope.activeRow = 0;
+		$scope.buttons = {};
+		$scope.supplier = {disable: false};
+		
+		var buttons = angular.element("button");
+		for (var i = 0; i < buttons.length; i++) {
+			$scope.buttons[buttons[i].getAttribute("name")] = {disabled: false};
+		}
 		
 		$scope.initialize = function() {
 			$http.get("/challenge/rest/findAll").then(function (response) {
-				$("#container > div:not(.grid-header)").html("");
-				$("#container").html($scope.list);
 				$scope.suppliers = response.data;
 			});
 		};
 		
 		$scope.initialize();
 		
+		$scope.toggleView = function() {
+			if ($scope.viewClass == "display-none") {
+				$scope.viewClass = "";
+				$scope.formClass = "display-none";
+			} else {
+				$scope.viewClass = "display-none";
+				$scope.formClass = "";
+			}
+		};
+		
 		$scope.create = function() {
-			$("#view").addClass("display-none");
-			$("#form").removeClass("display-none");
-			$("#btn-save").prop("disabled", false);
+			$scope.toggleView();
+			$scope.disableInputs(false);
 			
-			$("#form-id").val("");
-			$("#form-name").val("");
-			$("#form-email").val("");
-			$("#form-federalcode").val("");
-			$("#form-comment").val("");
+			$scope.disableButton("save", false);
+			
+			$scope.supplier = {
+				name: "",
+				email: "",
+				federalCode: "",
+				comment: ""
+			};
 		};
 		
 		$scope.read = function() {
-			var id = $(".row.selected-row").find(".row-id").val();
 			$http({
 			    url: "/challenge/rest/find",
 			    method: "GET",
-			    params: {id: id}
+			    params: {id: $scope.activeRow}
 			}).then(function (response) {
-				$("#view").addClass("display-none");
-				$("#form").removeClass("display-none");
+				$scope.toggleView();
 				
-				$("#btn-save").prop("disabled", true);
+				$scope.disableButton("save", true);
 				
-				$("#form-id").val(response.data.id);
-				$("#form-name").val(response.data.name);
-				$("#form-email").val(response.data.email);
-				$("#form-federalcode").val(response.data.federalCode);
-				$("#form-comment").val(response.data.comment);
+				$scope.supplier = {
+					id: response.data.id,
+					name: response.data.name,
+					email: response.data.email,
+					federalCode: response.data.federalCode,
+					comment: response.data.comment
+				};
 				
-				disableInputs(true);
+				$scope.disableInputs(true);
 			});
 		};
 		
 		$scope.update = function() {
-			var id = $(".row.selected-row").find(".row-id").val();
 			$http({
 			    url: "/challenge/rest/find",
 			    method: "GET",
-			    params: {id: id}
+			    params: {id: $scope.activeRow}
 			}).then(function (response) {
-				$("#view").addClass("display-none");
-				$("#form").removeClass("display-none");
+				$scope.toggleView();
 				
-				$("#btn-save").prop("disabled", false);
-				$("#form").find("input, textarea").val("");
+				$scope.disableButton("save", false);
 				
-				$("#form-id").val(response.data.id);
-				$("#form-name").val(response.data.name);
-				$("#form-email").val(response.data.email);
-				$("#form-federalcode").val(response.data.federalCode);
-				$("#form-comment").val(response.data.comment);
+				$scope.supplier = {
+					id: response.data.id,
+					name: response.data.name,
+					email: response.data.email,
+					federalCode: response.data.federalCode,
+					comment: response.data.comment
+				};
 				
-				disableInputs(false);
+				$scope.disableInputs(false);
 			});
 		};
 		
 		$scope.remove = function() {
 			$scope.supplier = {
 				type: "supplier",
-				id: $(".row.selected-row").find(".row-id").val()
+				id: $scope.activeRow
 			};
 			
 			$http.post("/challenge/rest/remove", $scope.supplier).then(function (response) {
 				$scope.initialize();
-				$("#confirm-remove-dialog").modal("hide");
 			});
 		};
 		
-		$scope.openDialog = function() {
-			$("#confirm-remove-dialog").modal("show");
+		$scope.openDialog = function(event) {
+			var confirm = $mdDialog.confirm()
+				.title("Alerta")
+				.textContent("Tem certeza que deseja excluir o registro?")
+				.targetEvent(event)
+				.ok("Remover")
+				.cancel("Cancelar");
+
+			$mdDialog.show(confirm).then(function() {
+				$scope.remove();
+			});
 		};
 		
-		$scope.save = function() {
-			$scope.supplier = {
-				type: "supplier",
-				id: $("#form-id").val(),
-				name: $("#form-name").val(),
-				email: $("#form-email").val(),
-				federalCode: $("#form-federalcode").val(),
-				comment: $("#form-comment").val()
-			};
-			
+		$scope.save = function(event) {
 			if ($scope.supplier.name != "" && $scope.supplier.email != "" && $scope.supplier.federalCode != "") {
 				$http.post("/challenge/rest/save", $scope.supplier).then(function (response) {
-					$("#form").addClass("display-none");
-					$("#view").removeClass("display-none");
-					
-					$("#btn-save").prop("disabled", true);
-					
-					$("#form-id").val(response.data.id);
-					$("#form-name").val(response.data.name);
-					$("#form-email").val(response.data.email);
-					$("#form-federalcode").val(response.data.federalCode);
-					$("#form-comment").val(response.data.comment);
+					$scope.disableButton("save", true);
 					
 					$scope.initialize();
+					$scope.toggleView();
 				});
 			} else {
-				$("#create-validation-dialog").modal("show");
+				$mdDialog.show(
+					$mdDialog.alert()
+					.clickOutsideToClose(true)
+					.title("Alerta")
+					.textContent(angular.element("#error-message").html())
+					.ok("Ok")
+					.targetEvent(event)
+				);
 			}
 		};
 		
 		$scope.cancel = function() {
-			$("#form").addClass("display-none");
-			$("#view").removeClass("display-none");
+			$scope.toggleView();
 		};
 		
-		function disableInputs(disable) {
-			$("#form > div.input-group").find("input, textarea").prop("disabled", disable);
+		$scope.disableButton = function(id, disable) {
+			$scope.buttons[id].disable = disable;
 		};
 		
-		$("div.container").on("change", "input[type='checkbox']", function() {
-			$("div.container > div.row > div.col-1 > input").prop("checked", false);
-			$(this).prop("checked", true);
-			
-			$("div.container > div.row").removeClass("selected-row");
-			$(this).parent().parent().addClass("selected-row");
-		});
+		$scope.disableInputs = function(disable) {
+			$scope.supplier.disable = disable;
+		}
+		
+		$scope.selectRow = function(index) {
+			if ($scope.activeRow != index) {
+				$scope.activeRow = index;
+			} else {
+				$scope.activeRow = 0;
+			}
+		};
+		
+		$scope.isSelected = function(index) {
+			return $scope.activeRow === index;
+		};
 	});
 })();

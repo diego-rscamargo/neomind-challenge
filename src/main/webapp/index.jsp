@@ -7,30 +7,27 @@
 		<link rel="stylesheet" type="text/css" href="<c:url value="/resources/styles/lib/bootstrap.min.css" />">
 		<link rel="stylesheet" type="text/css" href="<c:url value="/resources/styles/lib/bootstrap-grid.min.css" />">
 		<link rel="stylesheet" type="text/css" href="<c:url value="/resources/styles/lib/bootstrap-reboot.min.css" />">
+		<link rel="stylesheet" type="text/css" href="<c:url value="/resources/styles/lib/angular-material.min.css" />">
 		<link rel="stylesheet" type="text/css" href="<c:url value="/resources/styles/style.css" />">
 	</head>
 	<body ng-app="challenge">
 		<div id="main" ng-controller="Index">
-			<div id="view">
+			<div id="view" class="" ng-class="viewClass">
 				<div id="header">
-					<button id="btn-create" type="button" ng-click="create()" class="btn btn-outline-primary">Inserir</button>
-					<button id="btn-read" type="button" ng-click="read()" class="btn btn-outline-info">Visualizar</button>
-					<button id="btn-update" type="button" ng-click="update()" class="btn btn-outline-dark">Editar</button>
-					<button id="btn-delete" type="button" ng-click="openDialog()" class="btn btn-outline-danger">Excluir</button>
+					<button id="btn-create" type="button" ng-click="create()" class="btn btn-outline-primary" name="create">Inserir</button>
+					<button id="btn-read" type="button" ng-click="read()" ng-disabled="activeRow === 0" class="btn btn-outline-info" name="read">Visualizar</button>
+					<button id="btn-update" type="button" ng-click="update()" ng-disabled="activeRow === 0" class="btn btn-outline-dark" name="update">Editar</button>
+					<button id="btn-delete" type="button" ng-click="openDialog()" ng-disabled="activeRow === 0" class="btn btn-outline-danger" name="remove">Excluir</button>
 				</div>
 				<div id="content">
 					<div class="container">
 						<div class="row grid-header">
-							<div class="col-1"></div>
 							<div class="col">Nome</div>
 							<div class="col">Email</div>
 							<div class="col">CNPJ</div>
 							<div class="col">Comentário</div>
 						</div>
-						<div class="row" ng-repeat="supplier in suppliers">
-							<div class="col-1">
-								<input type="checkbox">
-							</div>
+						<div class="row" ng-repeat="supplier in suppliers" ng-click="selectRow(supplier.id)" ng-class="{'selected-row': isSelected(supplier.id)}">
 							<input type="hidden" class="row-id" value="{{supplier.id}}">
 							<div class="col">{{supplier.name}}</div>
 							<div class="col">{{supplier.email}}</div>
@@ -40,67 +37,39 @@
 					</div>
 				</div>
 			</div>
-			<div id="form" class="display-none">
-				<input type="hidden" id="form-id" value="" />
+			<div id="form" class="display-none" ng-class="formClass">
+				<input type="hidden" id="form-id" ng-model="supplier.id" ng-value="name" name="id" value="" />
 				<div class="input-group mb-3">
 					<label>Nome<span class="required">*</span></label>
-					<input type="text" id="form-name" class="form-control" aria-describedby="basic-addon1">
+					<input type="text" id="form-name" ng-model="supplier.name" ng-value="name" name="name" class="form-control" aria-describedby="basic-addon1" ng-disabled="supplier.disable === true">
 				</div>
 				<div class="input-group mb-3">
 					<label>Email<span class="required">*</span></label>
-					<input type="email" id="form-email" class="form-control" aria-describedby="basic-addon1">
+					<input type="email" id="form-email" ng-model="supplier.email" ng-value="name" name="email" class="form-control" aria-describedby="basic-addon1" ng-disabled="supplier.disable === true">
 				</div>
 				<div class="input-group mb-3">
 					<label>CNPJ<span class="required">*</span></label>
-					<input type="text" id="form-federalcode" class="form-control" aria-describedby="basic-addon1">
+					<input type="text" id="form-federalcode" ui-mask="99.999.999/9999-99" ui-mask-placeholder ui-mask-placeholder="_" ng-model="supplier.federalCode" ng-value="name" name="federalCode" class="form-control" aria-describedby="basic-addon1" ng-disabled="supplier.disable === true">
 				</div>
 				<div class="input-group">
 					<label>Comentário</label>
-					<textarea id="form-comment" class="form-control"></textarea>
+					<textarea id="form-comment" ng-model="supplier.comment" ng-value="name" name="comment" class="form-control" ng-disabled="supplier.disable === true"></textarea>
 				</div>
 				<div id="form-footer">
-					<button id="btn-save" ng-click="save()" type="button" class="btn btn-outline-info">Salvar</button>
-					<button id="btn-cancel" ng-click="cancel()" type="button" class="btn btn-outline-dark">Cancelar</button>
-				</div>
-			</div>
-
-			<div class="modal fade" id="confirm-remove-dialog" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-				<div class="modal-dialog" role="document">
-					<div class="modal-content">
-						<div class="modal-header">
-							<h5 class="modal-title" id="exampleModalLabel">Alerta</h5>
-							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-								<span aria-hidden="true">&times;</span>
-							</button>
-						</div>
-						<div class="modal-body">Tem certeza que deseja excluir o registro?</div>
-						<div class="modal-footer">
-							<button type="button" class="btn btn-outline-info" ng-click="remove()">Sim</button>
-							<button type="button" class="btn btn-outline-dark" data-dismiss="modal">Não</button>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="modal fade" id="create-validation-dialog" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-				<div class="modal-dialog" role="document">
-					<div class="modal-content">
-						<div class="modal-header">
-							<h5 class="modal-title" id="exampleModalLabel">Alerta</h5>
-							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-								<span aria-hidden="true">&times;</span>
-							</button>
-						</div>
-						<div class="modal-body">Preencha os campos obrigatórios!</div>
-						<div class="modal-footer">
-							<button type="button" class="btn btn-outline-dark" data-dismiss="modal">Fechar</button>
-						</div>
-					</div>
+					<button id="btn-save" ng-click="save($event)" type="button" class="btn btn-outline-info" name="save" ng-disabled="buttons.save.disable === true">Salvar</button>
+					<button id="btn-cancel" ng-click="cancel()" type="button" class="btn btn-outline-dark" name="cancel">Cancelar</button>
 				</div>
 			</div>
 		</div>
+		<span id="error-message" class="display-none">Preencha todos os campos obrigatórios!</span>
 	</body>
 	<script src="<c:url value="/resources/scripts/lib/jquery.min.js" />"></script>
 	<script src="<c:url value="/resources/scripts/lib/angular.min.js" />"></script>
+	<script src="<c:url value="/resources/scripts/lib/angular-material.min.js" />"></script>
+	<script src="<c:url value="/resources/scripts/lib/angular-animate.min.js" />"></script>
+	<script src="<c:url value="/resources/scripts/lib/angular-aria.min.js" />"></script>
+	<script src="<c:url value="/resources/scripts/lib/angular-messages.min.js" />"></script>
+	<script src="<c:url value="/resources/scripts/lib/angular-mask.min.js" />"></script>
 	<script src="<c:url value="/resources/scripts/lib/bootstrap.min.js" />"></script>
 	<script src="<c:url value="/resources/scripts/lib/bootstrap.bundle.min.js" />"></script>
 	<script src="<c:url value="/resources/scripts/script.js" />"></script>
